@@ -3,17 +3,21 @@ import { ActionResult } from '../types/agent';
 import { Server as HttpServer } from 'http';
 
 export class WebSocketService {
-  private io: Server;
+  private io!: Server;
   private static instance: WebSocketService;
   private taskRooms: Map<string, Set<string>> = new Map();
 
   private constructor(server: HttpServer) {
     this.io = new Server(server, {
       cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        origin: ['https://verify-aiagent-app-tunnel-rn7wrjgq.devinapps.com', 'https://verify-aiagent-app-tunnel-npz4mrmc.devinapps.com', 'https://verify-aiagent-app-tunnel-2fa2enei.devinapps.com', 'https://verify-aiagent-app-tunnel-rbcctlxs.devinapps.com', 'https://verify-aiagent-app-tunnel-joprux7p.devinapps.com', 'https://verify-aiagent-app-tunnel-y6ja5rku.devinapps.com', 'https://verify-aiagent-app-tunnel-dbejq1ym.devinapps.com', 'https://verify-aiagent-app-tunnel-8gpwwgey.devinapps.com'],
         methods: ['GET', 'POST'],
-        credentials: true
-      }
+        credentials: true,
+        allowedHeaders: ['Content-Type', 'Authorization', 'Content-Length', 'User-Agent', 'Accept', 'Connection', 'Cache-Control']
+      },
+      transports: ['polling', 'websocket'],
+      allowEIO3: true,
+      path: '/socket.io/'
     });
 
     this.io.on('connection', (socket) => {

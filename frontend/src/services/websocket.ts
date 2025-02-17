@@ -18,9 +18,11 @@ export class WebSocketClient {
   private static instance: WebSocketClient;
 
   private constructor() {
-    this.socket = io(import.meta.env?.VITE_BACKEND_URL || 'http://localhost:3000', {
+    this.socket = io('/', {
       reconnectionDelayMax: 10000,
-      transports: ['websocket']
+      transports: ['polling', 'websocket'],
+      withCredentials: true,
+      path: '/socket.io'
     });
 
     this.socket.on('connect', () => {
@@ -51,11 +53,11 @@ export class WebSocketClient {
     this.socket.emit('leave:task', taskId);
   }
 
-  subscribeToTaskUpdates(taskId: string, callback: (update: TaskUpdate) => void): void {
+  subscribeToTaskUpdates(_taskId: string, callback: (update: TaskUpdate) => void): void {
     this.socket.on('task:update', callback);
   }
 
-  subscribeToTaskComplete(taskId: string, callback: (complete: TaskComplete) => void): void {
+  subscribeToTaskComplete(_taskId: string, callback: (complete: TaskComplete) => void): void {
     this.socket.on('task:complete', callback);
   }
 

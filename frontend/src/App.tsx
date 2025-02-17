@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Container, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Container, CssBaseline, ThemeProvider, createTheme, Alert } from '@mui/material';
 import { TaskInput } from './components/TaskInput';
 import { TaskOutput } from './components/TaskOutput';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -67,7 +67,7 @@ function App() {
       setError(undefined);
       setResults([]);
 
-      const response = await fetch(`${import.meta.env?.VITE_BACKEND_URL || 'http://localhost:3000'}/api/agent/task`, {
+      const response = await fetch(`/api/agent/task`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,12 @@ function App() {
       >
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <ErrorBoundary>
-            <TaskInput onSubmit={handleSubmit} />
+            <TaskInput onSubmit={handleSubmit} loading={loading} />
+            {error && (
+              <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+                {error}
+              </Alert>
+            )}
             <TaskOutput
               results={results}
               loading={loading}
