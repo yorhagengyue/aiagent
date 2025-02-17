@@ -1,0 +1,20 @@
+:root {
+  --primary-color: #4F46E5;
+  --secondary-color: #7C3AED;
+  --background-color: #111827;
+  --paper-color: #1F2937;
+  --text-color: #F9FAFB;
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+#root {
+  min-height: 100vh;
+}
