@@ -1,5 +1,5 @@
-import os
 import asyncio
+import os
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -18,6 +18,33 @@ load_dotenv()
 
 # 自定义CSS样式
 custom_css = """
+/* 内容块样式 */
+.thinking {
+    background: #f8fafc;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+.action {
+    background: #f0f9ff;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+.result {
+    background: #f0fdf4;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+.label {
+    color: #4B5563;
+}
+
+
 .gradio-container {
     max-width: 1200px !important;
     margin: 0 auto !important;
@@ -61,10 +88,45 @@ custom_css = """
 .submit-btn {
     background: #4F46E5 !important;
     color: white !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.submit-btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
 }
 
 .clear-btn {
     border: 1px solid #e5e7eb !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.clear-btn:hover {
+    background: #f3f4f6 !important;
+}
+
+.process-container {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+.step-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.step-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.thinking, .action, .result {
+    transition: all 0.2s ease-in-out;
+}
+
+.thinking:hover, .action:hover, .result:hover {
+    transform: translateX(4px);
 }
 
 /* 确保组件内容正确对齐 */
@@ -123,10 +185,10 @@ async def run_browser_task(
 			llm=ChatOpenAI(model='gpt-4o', temperature=0.6),
 		)
 		result = await agent.run()
-		
+
 		# 构建更友好的步骤展示界面
 		process_html = '''
-		<div style="font-family: Arial; padding: 1rem;">
+		<div class="process-container" style="font-family: Arial; padding: 1rem;">
 			<div class="task-header" style="
 				background: linear-gradient(90deg, #4F46E5, #7C3AED);
 				color: white;
@@ -134,7 +196,7 @@ async def run_browser_task(
 				border-radius: 8px;
 				margin-bottom: 1rem;
 			">
-				<h3 style="margin:0">🚀 执行任务</h3>
+				<h3 style="margin:0">🎯 任务目标</h3>
 				<p style="margin:0.5rem 0 0 0">{task}</p>
 			</div>
 			<div class="steps-container">
@@ -151,18 +213,18 @@ async def run_browser_task(
 					# 如果没有 Eval 相关信息，则直接将全部内容作为展示
 					eval_status = action.extracted_content
 					eval_detail = ""
-				
+
 				memory = ""
 				if "Memory:" in eval_info:
 					memory = eval_info.split("Memory:")[1].split("Next goal:")[0].strip()
-    
+
 				next_goal = ""
 				if "Next goal:" in eval_info:
 					next_goal = eval_info.split("Next goal:")[1].split("Action")[0].strip()
-				
+
 				# 当 memory 和 next_goal 均为空时，直接展示内容（避免信息缺失）
 				content = "" if memory or next_goal else action.extracted_content
-				
+
 				# 构建步骤卡片
 				process_html += f'''
 				<div class="step-card" style="
@@ -171,28 +233,37 @@ async def run_browser_task(
 					padding: 1rem;
 					margin-bottom: 1rem;
 					background: white;
-					box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+					box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 				">
 					<div class="step-header" style="
 						display: flex;
 						align-items: center;
-						margin-bottom: 0.5rem;
+						margin-bottom: 0.75rem;
+						border-bottom: 1px solid #e5e7eb;
+						padding-bottom: 0.5rem;
 					">
 						<span style="
 							background: #4F46E5;
 							color: white;
-							padding: 0.25rem 0.5rem;
+							padding: 0.25rem 0.75rem;
 							border-radius: 4px;
-							margin-right: 0.5rem;
+							margin-right: 0.75rem;
+							font-weight: 500;
 						">步骤 {idx}</span>
-						<span style="color: {'#059669' if action.is_done else '#9333EA'}">
+						<span style="color: #374151; font-weight: 500;">
 							{eval_status}
 						</span>
 					</div>
-					<div class="step-content" style="margin-left: 1rem;">
-						{ f'<div class="memory" style="background: #f3f4f6; padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;"><span style="color: #4B5563">🧠 思考：</span>{memory}</div>' if memory else '' }
-						{ f'<div class="goal" style="background: #ede9fe; padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;"><span style="color: #4B5563">🎯 目标：</span>{next_goal}</div>' if next_goal else '' }
-						{ f'<div class="content" style="margin: 0.5rem 0; color: #374151;">{content}</div>' if content else '' }
+					<div class="step-content" style="margin-left: 0.5rem;">
+						{ f'''<div class="thinking">
+							<span class="label">💭 思考过程：</span>{memory}
+						</div>''' if memory else '' }
+						{ f'''<div class="action">
+							<span class="label">🔄 执行动作：</span>{next_goal}
+						</div>''' if next_goal else '' }
+						{ f'''<div class="result">
+							<span class="label">✨ 执行结果：</span>{content}
+						</div>''' if content else '' }
 					</div>
 				</div>
 				'''
@@ -209,17 +280,21 @@ async def run_browser_task(
 						border: 1px solid #e5e7eb;
 						border-radius: 8px;
 						padding: 1.5rem;
-						box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+						box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 					">
 						<h3 style="
 							color: #4F46E5;
 							margin-top: 0;
 							border-bottom: 2px solid #4F46E5;
-							padding-bottom: 0.5rem;
-						">📊 分析报告</h3>
+							padding-bottom: 0.75rem;
+							font-size: 1.25rem;
+						">📊 任务完成报告</h3>
 						<div style="
 							line-height: 1.6;
 							color: #1f2937;
+							background: #f8fafc;
+							padding: 1rem;
+							border-radius: 4px;
 						">{final_content}</div>
 					</div>
 				</div>
@@ -238,20 +313,24 @@ async def run_browser_task(
 		else:
 			process_html = f'<div style="padding: 1rem;">{str(result)}</div>'
 			final_report = ''
-			
+
 		return (process_html, final_report)
 	except Exception as e:
 		error_html = f'''
 		<div style="
 			font-family: Arial;
 			padding: 1rem;
-			background: #fee2e2;
+			background: #fef2f2;
 			border: 1px solid #ef4444;
 			border-radius: 8px;
 			color: #dc2626;
+			margin: 1rem 0;
 		">
-			<h4 style="margin:0">❌ 执行出错</h4>
-			<p style="margin:0.5rem 0 0 0">{str(e)}</p>
+			<h4 style="margin:0; display: flex; align-items: center;">
+				<span style="margin-right: 0.5rem;">❌</span>
+				执行出错
+			</h4>
+			<p style="margin:0.5rem 0 0 0; color: #7f1d1d;">{str(e)}</p>
 		</div>
 		'''
 		return error_html, ''
@@ -260,7 +339,7 @@ async def run_browser_task(
 def create_ui():
 	with gr.Blocks(title='智能浏览器助手', css=custom_css) as interface:
 		gr.Markdown('# 🌐 智能浏览器助手', elem_classes=["main-header"])
-		
+
 		with gr.Row():
 			with gr.Column(elem_classes=["input-panel"]):
 				api_key = gr.Textbox(
@@ -280,7 +359,7 @@ def create_ui():
 					value='gpt-4'
 				)
 				headless = gr.Checkbox(label='后台运行', value=True)
-				
+
 				with gr.Row():
 					submit_btn = gr.Button('开始任务', elem_classes=["submit-btn"])
 					clear_btn = gr.Button('清除', elem_classes=["clear-btn"])
@@ -290,7 +369,7 @@ def create_ui():
 				with gr.Group(elem_classes=["output-panel"]):
 					gr.Markdown("### 🤔 思考与操作过程")
 					process_output = gr.HTML(container=True)
-				
+
 				with gr.Group(elem_classes=["output-panel"]):
 					gr.Markdown("### 📝 实际报告")
 					report_output = gr.HTML(container=True)
@@ -311,7 +390,7 @@ def create_ui():
 			inputs=[task, api_key, model, headless],
 			outputs=[process_output, report_output],
 		)
-		
+
 		clear_btn.click(
 			fn=lambda: (None, None),
 			inputs=None,
